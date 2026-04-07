@@ -425,7 +425,7 @@ def color_pnl_cell(val):
 
 def apply_pnl_color(styler, cols):
     """Apply green/red coloring to specified columns."""
-    return styler.applymap(color_pnl_cell, subset=cols)
+    return styler.map(color_pnl_cell, subset=cols) if hasattr(styler, "map") else styler.applymap(color_pnl_cell, subset=cols)
 
 # ════════════════════════════════════════════════════════════════
 # SIDEBAR
@@ -631,20 +631,18 @@ with t_sl:
 
         if not breached.empty:
             st.error("### ⛔ SL BREACHED — EXIT IMMEDIATELY")
-            st.dataframe(
-                breached[SL_COLS].rename(columns=SL_REN).style.format(SL_FMT)
-                .applymap(lambda _: "background-color:#7f1d1d;color:#ffffff;font-weight:700"),
-                use_container_width=True, hide_index=True)
+            styled_breach = breached[SL_COLS].rename(columns=SL_REN).style.format(SL_FMT)
+            styled_breach = styled_breach.map(lambda _: "background-color:#7f1d1d;color:#ffffff;font-weight:700") if hasattr(styled_breach, "map") else styled_breach.applymap(lambda _: "background-color:#7f1d1d;color:#ffffff;font-weight:700")
+            st.dataframe(styled_breach, use_container_width=True, hide_index=True)
         else:
             st.success("No SL breached right now.")
 
         st.markdown("---")
         st.warning("### ⚠️ Approaching Stop Loss (>34% below highest high)")
         if not near.empty:
-            st.dataframe(
-                near[SL_COLS].rename(columns=SL_REN).style.format(SL_FMT)
-                .applymap(lambda _: "background-color:#431407;color:#ffffff;font-weight:600"),
-                use_container_width=True, hide_index=True)
+            styled_near = near[SL_COLS].rename(columns=SL_REN).style.format(SL_FMT)
+            styled_near = styled_near.map(lambda _: "background-color:#431407;color:#ffffff;font-weight:600") if hasattr(styled_near, "map") else styled_near.applymap(lambda _: "background-color:#431407;color:#ffffff;font-weight:600")
+            st.dataframe(styled_near, use_container_width=True, hide_index=True)
         else:
             st.success("No stocks approaching SL threshold.")
 
@@ -823,8 +821,7 @@ with t_mtm:
         d3.metric("Losers 🔴",  losers)
         d4.metric("Flat ⚪",    len(mtm) - gainers - losers)
 
-        styled_mtm = mtm.style.applymap(color_pnl_cell,
-                     subset=["Day Chg (Rs)","Day Chg (%)","Day PnL (Rs)"])
+        styled_mtm = mtm.style.map(color_pnl_cell, subset=["Day Chg (Rs)","Day Chg (%)","Day PnL (Rs)"]) if hasattr(mtm.style, "map") else mtm.style.applymap(color_pnl_cell, subset=["Day Chg (Rs)","Day Chg (%)","Day PnL (Rs)"])
         st.dataframe(styled_mtm, use_container_width=True, height=480, hide_index=True)
 
         mc1,mc2 = st.columns(2)
