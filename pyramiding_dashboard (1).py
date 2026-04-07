@@ -16,6 +16,11 @@ import plotly.express as px
 from datetime import datetime
 import yfinance as yf
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+except ImportError:
+    st_autorefresh = None
+
 # ─────────────────────── PAGE CONFIG ─────────────────────────────
 st.set_page_config(page_title="Pyramiding Dashboard", page_icon="📈",
                    layout="wide", initial_sidebar_state="expanded")
@@ -41,7 +46,7 @@ h2,h3{color:#e2e8f0!important;}
 """, unsafe_allow_html=True)
 
 # ─────────────────────── PRICE HELPERS ───────────────────────────
-@st.cache_data(ttl=120)
+@st.cache_data(ttl=60)
 def fetch_stock_stats(ticker: str, start_date=None) -> dict:
     for sym in [f"{ticker.upper()}.NS", ticker.upper()]:
         try:
@@ -425,12 +430,21 @@ def apply_pnl_color(styler, cols):
 # ════════════════════════════════════════════════════════════════
 # SIDEBAR
 # ════════════════════════════════════════════════════════════════
+uploaded = None
+use_live = True
+fetch_mtm = True
+
 with st.sidebar:
     st.title("📊 Pyramiding Dashboard")
     st.markdown("---")
-    uploaded  = st.file_uploader("📂 Upload Portfolio File", type=["xlsx","xls","csv"])
-    use_live  = st.toggle("🌐 Fetch live prices (Yahoo Finance)", value=False)
-    fetch_mtm = st.toggle("📅 Load Daily MTM", value=False)
+    auto_refresh = st.toggle("⏱️ Auto Refresh (1 min)", value=False)
+    
+    if auto_refresh:
+        if st_autorefresh:
+            st_autorefresh(interval=60 * 1000, key="dataframerefresh")
+        else:
+            st.sidebar.error("pip install streamlit-autorefresh missing!")
+
     if st.button("🔄 Clear Cache", type="secondary"):
         st.cache_data.clear()
         st.session_state.clear()
