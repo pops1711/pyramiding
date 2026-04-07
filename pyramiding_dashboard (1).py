@@ -491,40 +491,6 @@ if st.session_state.get("port_key") != cache_key:
 else:
     port = st.session_state.port
 
-real_total, real_by_scrip = realized_pnl(exited_df)
-
-# ── Key numbers ──────────────────────────────────────────────────
-total_inv  = port["Inv"].sum()
-total_val  = port["Cur_Val"].sum()
-unrealized = port["Unrealized"].sum()
-net_pnl    = unrealized + real_total
-net_ret    = net_pnl / total_inv * 100 if total_inv else 0
-profit_n   = int((port["Unrealized"] > 0).sum())
-loss_n     = int((port["Unrealized"] < 0).sum())
-best       = port.loc[port["Unrealized"].idxmax()]
-worst      = port.loc[port["Unrealized"].idxmin()]
-top_pyr    = port.loc[port["N_Entries"].idxmax()]
-
-# ════════════════════════════════════════════════════════════════
-# SUMMARY BANNER
-# ════════════════════════════════════════════════════════════════
-st.markdown("## Portfolio Summary")
-c1,c2,c3,c4,c5 = st.columns(5)
-c1.metric("💰 Net P&L",        f"Rs {net_pnl:,.0f}",    f"{net_ret:+.2f}%")
-c2.metric("📦 Portfolio Value", f"Rs {total_val:,.0f}",  f"Invested Rs {total_inv:,.0f}")
-c3.metric("📊 Unrealized P&L", f"Rs {unrealized:,.0f}", f"{unrealized/total_inv*100:+.2f}%" if total_inv else "—")
-c4.metric("🏦 Realized P&L",   f"Rs {real_total:,.0f}", f"{exited_df['SCRIP'].nunique() if not exited_df.empty else 0} stocks exited")
-c5.metric("🔢 Open Stocks",    f"{len(port)}",           f"Pyramiding: {(port['N_Entries']>1).sum()}")
-
-c6,c7,c8,c9,c10 = st.columns(5)
-c6.metric("🟢 Profitable",       f"{profit_n}")
-c7.metric("🔴 Loss",              f"{loss_n}")
-c8.metric("🏆 Best",  best["SCRIP"],  f"Rs {best['Unrealized']:,.0f} ({best['Ret_Pct']:+.1f}%)")
-c9.metric("⚠️ Worst", worst["SCRIP"], f"Rs {worst['Unrealized']:,.0f} ({worst['Ret_Pct']:+.1f}%)")
-c10.metric("🔝 Most Pyramided",   top_pyr["SCRIP"], f"{top_pyr['N_Entries']} entries")
-st.markdown("---")
-
-# ════════════════════════════════════════════════════════════════
 # TABS
 # ════════════════════════════════════════════════════════════════
 (t_nb, t_sl, t_dup, t_miss) = st.tabs([
